@@ -13,10 +13,9 @@ class TwitterDownloader
 
     function __construct($video_url)
     {
+        $this->m3u8_url     = '';
         $this->video_url    = $video_url;
         $this->video_url_id = str_replace('https://twitter.com/i/status/', '', $video_url);
-        $this->segments     = array();
-        $this->session      = new Requests_Session();
         $this->headers      = array();
     }
 
@@ -36,7 +35,7 @@ class TwitterDownloader
         $this->headers['x-guest-token'] = $guest_token;
     }
 
-    function get_segments()
+    function get_m3u8_url()
     {
         # Get video config
         $response = Requests::get('https://api.twitter.com/1.1/videos/tweet/config/' . $this->video_url_id . '.json', $this->headers);
@@ -46,54 +45,18 @@ class TwitterDownloader
         $playback_url = $json['track']['playbackUrl'];
         $response = Requests::get($playback_url);
 
-        # Create a m3u8 parser
-        $m3u8_parser = new ParserFacade();
-
         # Get m3u8 url
+        $m3u8_parser = new ParserFacade();
         $m3u8_list = $m3u8_parser->parse(new TextStream($response->body));
-        $m3u8_url = 'https://video.twimg.com' . end($m3u8_list['EXT-X-STREAM-INF'])['uri'];
-
-        # Get video segments
-        $response = Requests::get($m3u8_url);
-        $segments = $m3u8_parser->parse(new TextStream($response->body));
-        foreach ($segments['mediaSegments'] as $segment)
-        {
-            array_push($this->segments, 'https://video.twimg.com' . $segment['uri']);
-        }
+        $this->m3u8_url = 'https://video.twimg.com' . end($m3u8_list['EXT-X-STREAM-INF'])['uri'];
     }
 
     function download()
     {
         $this->get_bearer_token();
         $this->get_guest_token();
-        $this->get_segments();
-
-        $file_m = fopen('merge_list', 'w+');
-        foreach ($this->segments as $count => $segment)
-        {
-            $response = Requests::get($segment);
-            $file = fopen((string)$count . '.ts', 'w+');
-            fwrite($file, $response->body);
-            fclose($file);
-
-            fwrite($file_m, 'file ' . (string)$count . '.ts' . "\n");
-        }
-        fclose($file_m);
-
-        $this->merge();
-    }
-
-    function merge()
-    {
-        system('ffmpeg -f concat -i merge_list -c copy output.mp4');
-        $this->clean_segment_files();
-    }
-
-    function clean_segment_files()
-    {
-        foreach ($this->segments as $count => $segment) {
-            unlink((string)$count . '.ts');
-        }
+        $this->get_m3u8_url();
+        system('ffmpeg -i ' . $this->m3u8_url . ' -c copy output.mp4');
     }
 
 }
