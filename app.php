@@ -99,7 +99,9 @@ class TwitterDownloader
 }
 
 
-$twitter_downloader = new TwitterDownloader('https://twitter.com/i/status/1201327902941253632');
+echo 'Enter a Twitter video url : ';
+$video_url = trim(fgets(STDIN));
+$twitter_downloader = new TwitterDownloader($video_url);
 $twitter_downloader->download();
 
 
