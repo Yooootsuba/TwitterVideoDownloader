@@ -56,7 +56,8 @@ class TwitterDownloader
         # Get video segments
         $response = Requests::get($m3u8_url);
         $segments = $m3u8_parser->parse(new TextStream($response->body));
-        foreach ($segments['mediaSegments'] as $segment) {
+        foreach ($segments['mediaSegments'] as $segment)
+        {
             array_push($this->segments, 'https://video.twimg.com' . $segment['uri']);
         }
     }
@@ -67,13 +68,34 @@ class TwitterDownloader
         $this->get_guest_token();
         $this->get_segments();
 
-        foreach ($this->segments as $count => $segment) {
+        $file_m = fopen('merge_list', 'w+');
+        foreach ($this->segments as $count => $segment)
+        {
             $response = Requests::get($segment);
             $file = fopen((string)$count . '.ts', 'w+');
             fwrite($file, $response->body);
             fclose($file);
+
+            fwrite($file_m, 'file ' . (string)$count . '.ts' . "\n");
+        }
+        fclose($file_m);
+
+        $this->merge();
+    }
+
+    function merge()
+    {
+        system('ffmpeg -f concat -i merge_list -c copy output.mp4');
+        $this->clean_segment_files();
+    }
+
+    function clean_segment_files()
+    {
+        foreach ($this->segments as $count => $segment) {
+            unlink((string)$count . '.ts');
         }
     }
+
 }
 
 
