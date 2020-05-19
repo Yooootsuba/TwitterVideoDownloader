@@ -1,7 +1,6 @@
 {
     "require": {
         "rmccue/requests": "^1.7",
-        "paquettg/php-html-parser": "^2.2",
         "chrisyue/php-m3u8": "^3.4"
     }
 }
