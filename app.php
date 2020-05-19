@@ -1,8 +1,11 @@
 <?php
 
 
+use Chrisyue\PhpM3u8\Stream\TextStream;
+use Chrisyue\PhpM3u8\Facade\ParserFacade;
+
+
 require __DIR__ . '/vendor/autoload.php';
-use PHPHtmlParser\Dom;
 
 
 class TwitterDownloader
@@ -12,6 +15,7 @@ class TwitterDownloader
     {
         $this->video_url    = $video_url;
         $this->video_url_id = str_replace('https://twitter.com/i/status/', '', $video_url);
+        $this->segments     = array();
         $this->session      = new Requests_Session();
         $this->headers      = array();
     }
@@ -31,11 +35,38 @@ class TwitterDownloader
         $guest_token = $matches[0];
         $this->headers['x-guest-token'] = $guest_token;
     }
+
+    function get_segments()
+    {
+        # Get video config
+        $response = Requests::get('https://api.twitter.com/1.1/videos/tweet/config/' . $this->video_url_id . '.json', $this->headers);
+        $json = json_decode($response->body, true);
+
+        # Get playback url
+        $playback_url = $json['track']['playbackUrl'];
+        $response = Requests::get($playback_url);
+
+        # Create a m3u8 parser
+        $m3u8_parser = new ParserFacade();
+
+        # Get m3u8 url
+        $m3u8_list = $m3u8_parser->parse(new TextStream($response->body));
+        $m3u8_url = 'https://video.twimg.com' . end($m3u8_list['EXT-X-STREAM-INF'])['uri'];
+
+        # Get video segments
+        $response = Requests::get($m3u8_url);
+        $segments = $m3u8_parser->parse(new TextStream($response->body));
+        foreach ($segments['mediaSegments'] as $segment) {
+            array_push($this->segments, 'https://video.twimg.com' . $segment['uri']);
+        }
+    }
 }
 
 
 $twitter_downloader = new TwitterDownloader('https://twitter.com/i/status/1201327902941253632');
 $twitter_downloader->get_bearer_token();
 $twitter_downloader->get_guest_token();
+$twitter_downloader->get_segments();
+
 
 ?>
