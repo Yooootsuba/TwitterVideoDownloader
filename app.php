@@ -60,13 +60,25 @@ class TwitterDownloader
             array_push($this->segments, 'https://video.twimg.com' . $segment['uri']);
         }
     }
+
+    function download()
+    {
+        $this->get_bearer_token();
+        $this->get_guest_token();
+        $this->get_segments();
+
+        foreach ($this->segments as $count => $segment) {
+            $response = Requests::get($segment);
+            $file = fopen((string)$count . '.ts', 'w+');
+            fwrite($file, $response->body);
+            fclose($file);
+        }
+    }
 }
 
 
 $twitter_downloader = new TwitterDownloader('https://twitter.com/i/status/1201327902941253632');
-$twitter_downloader->get_bearer_token();
-$twitter_downloader->get_guest_token();
-$twitter_downloader->get_segments();
+$twitter_downloader->download();
 
 
 ?>
