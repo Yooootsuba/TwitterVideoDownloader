@@ -62,7 +62,17 @@ class TwitterDownloader
 }
 
 
-echo 'Enter a Twitter video url : ';
+echo '
+___                                              _
+ |      o _|_ _|_  _  ._   \  / o  _|  _   _    | \  _       ._  |  _   _.  _|  _  ._
+ | \/\/ |  |_  |_ (/_ |     \/  | (_| (/_ (_)   |_/ (_) \/\/ | | | (_) (_| (_| (/_ |
+
+
+Created by Yotsuba
+
+Enter a Twitter video url : ';
+
+
 $video_url = trim(fgets(STDIN));
 $twitter_downloader = new TwitterDownloader($video_url);
 $twitter_downloader->download();
