@@ -1,6 +1,6 @@
 # Twitter Video Downloader
 
-A php scripts for downloading Twitter videos .
+A php scripts for downloading Twitter videos
 
 ## Usage
 
@@ -13,8 +13,8 @@ A php scripts for downloading Twitter videos .
 $ composer install
 ```
 
-3. Run the program and paste the Twitter video url 
+3. Run the program and paste the Twitter video url
 
 ```sh
-php app.php
+php downloader.php
 ```
