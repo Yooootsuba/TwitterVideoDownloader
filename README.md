@@ -16,5 +16,5 @@ $ composer install
 3. Run the program and paste the Twitter video url
 
 ```sh
-php downloader.php
+$ php downloader.php
 ```
