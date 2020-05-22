@@ -2,18 +2,18 @@
 
 A php scripts for downloading Twitter videos .
 
-## Installation
+## Usage
 
-Download ffmpeg and add it to the environment variables
+1. Download ffmpeg and add it to the environment variables
 
 
-Install the php package required by this project
+2. Install the php package required by this project
 
 ```sh
 $ composer install
 ```
 
-## Usage
+3. Run the program and paste the Twitter video url 
 
 ```sh
 php app.php
